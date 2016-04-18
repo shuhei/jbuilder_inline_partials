@@ -14,9 +14,9 @@ module JbuilderInlinePartials
       Inliner.new do |name|
         components = name.split('/')
         components[-1] = "_#{components[-1]}"
-        partial_name = components.join('/')
+        partial_name = "#{components.join('/')}.json.jbuilder"
+        path = Rails.root.join('app', 'views', partial_name)
 
-        path = Rails.root.join('app', 'views', partial_name) + '.json.jbuilder'
         File.read(path)
       end
     end
