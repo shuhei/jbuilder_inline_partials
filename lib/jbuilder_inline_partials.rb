@@ -1,5 +1,5 @@
-require "jbuilder_inline_partials/version"
-
-module JbuilderInlinePartials
-  # Your code goes here...
-end
+require 'active_support'
+require 'active_support/core_ext'
+require 'jbuilder_inline_partials/version'
+require 'jbuilder_inline_partials/inliner'
+require 'jbuilder_inline_partials/handler'
