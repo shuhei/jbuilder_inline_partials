@@ -20,10 +20,16 @@ json.bar(@foo.bar)
 
     it 'replaces json.partial! with its content' do
       inliner = described_class.new do |name|
-        if name == 'bar'
-          <<-PARTIAL
+        case name
+        when 'bar' then <<-BAR
 json.extract! bar, :id, :name
-          PARTIAL
+json.bazs bar.bazs do |baz|
+  json.partial! 'baz', baz: baz
+end
+        BAR
+        when 'baz' then <<-BAZ
+json.extract! baz, :id, :amount
+        BAZ
         end
       end
       source = <<-SOURCE
@@ -37,6 +43,9 @@ end
 json.extract!(foo, :id, :name)
 json.bar do
   json.extract!(foo.bar, :id, :name)
+  json.bazs(foo.bar.bazs) do |baz|
+    json.extract!(baz, :id, :amount)
+  end
 end
       RESULT
     end
