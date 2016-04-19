@@ -8,21 +8,18 @@ module JbuilderInlinePartials
       @resolver = resolver
     end
 
-    # Recursively inline partials in a template.
-    #
     # source - The String source of a template or partial.
     #
     # Returns the String of the inlined template.
     def inline(source)
-      inlined = inline_template(source)
+      ast = parse(source)
+      inlined = inline_template(ast)
       Unparser.unparse(inlined)
     end
 
     private
 
-    def inline_template(source)
-      raw_ast = Parser::CurrentRuby.parse(source)
-      ast = LvarLikeRewriter.new.process(raw_ast)
+    def inline_template(ast)
       partials = find_partials(ast)
       fill_partial_contents(partials)
       replace(ast, partials)
@@ -38,11 +35,13 @@ module JbuilderInlinePartials
       partials_by_name = all_partials.group_by(&:name)
       partials_by_name.each do |name, partials|
         source = @resolver.call(name)
-        ast = inline_template(source)
+        ast = parse(source)
 
         partials.each do |partial|
+          # Rewrite locals first not to rewrite locals in nested partials.
           rewriter = LocalRewriter.new(partial.locals)
-          partial.content = rewriter.process(ast)
+          rewritten = rewriter.process(ast)
+          partial.content = inline_template(rewritten)
         end
       end
     end
@@ -51,6 +50,11 @@ module JbuilderInlinePartials
       partial_by_node = partials.group_by(&:node).map { |k, v| [k, v.first] }.to_h
       rewriter = PartialRewriter.new(partial_by_node)
       rewriter.process(ast)
+    end
+
+    def parse(source)
+      raw_ast = Parser::CurrentRuby.parse(source)
+      LvarLikeRewriter.new.process(raw_ast)
     end
   end
 end
