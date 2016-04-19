@@ -2,14 +2,23 @@ require 'jbuilder_inline_partials/processors'
 
 module JbuilderInlinePartials
   class Inliner
+    # resolver - The block that takes a String of partial name and returns its
+    #            content as String.
     def initialize(&resolver)
       @resolver = resolver
     end
 
+    # Recursively inline partials in a template.
+    #
+    # source - The String source of a template or partial.
+    #
+    # Returns the String of the inlined template.
     def inline(source)
       inlined = inline_template(source)
       Unparser.unparse(inlined)
     end
+
+    private
 
     def inline_template(source)
       raw_ast = Parser::CurrentRuby.parse(source)
